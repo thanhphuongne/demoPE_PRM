@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 tvTotalMinutes.setText("0 min this week");
                 tvMostSubject.setText("N/A");
-                tvAvgFocus.setText("0.0 ⭐");
+                tvAvgFocus.setText("⭐ 0.0");
             }
         });
 
@@ -309,14 +309,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderSummary(StudyRepository.Summary summary, Map<String, Subject> subjects) {
-        tvTotalMinutes.setText(String.format(Locale.getDefault(), "%d min this week", summary.totalMinutesThisWeek));
+        int mins = Math.max(0, summary.totalMinutesThisWeek);
+        int hours = mins / 60;
+        int rem = mins % 60;
+        String totalText;
+        if (hours > 0 && rem > 0) {
+            totalText = String.format(Locale.getDefault(), "%dh %dm", hours, rem);
+        } else if (hours > 0) {
+            totalText = String.format(Locale.getDefault(), "%dh", hours);
+        } else {
+            totalText = String.format(Locale.getDefault(), "%dm", rem);
+        }
+        tvTotalMinutes.setText(totalText);
+    
         String mostName = "N/A";
         if (summary.mostStudiedSubjectId != null) {
             Subject subj = subjects != null ? subjects.get(summary.mostStudiedSubjectId) : null;
-            mostName = subj != null && subj.getName() != null ? subj.getName() : summary.mostStudiedSubjectId;
+            mostName = (subj != null && subj.getName() != null && !subj.getName().trim().isEmpty())
+                    ? subj.getName()
+                    : (summary.mostStudiedSubjectId != null ? summary.mostStudiedSubjectId : "N/A");
         }
         tvMostSubject.setText(mostName);
-        tvAvgFocus.setText(String.format(Locale.getDefault(), "%.1f ⭐", summary.averageFocus));
+    
+        tvAvgFocus.setText(String.format(Locale.getDefault(), "⭐ %.1f", summary.averageFocus));
     }
 
     private void renderPieChart(Map<String, Integer> minutesBySubjectId, Map<String, Subject> subjects) {

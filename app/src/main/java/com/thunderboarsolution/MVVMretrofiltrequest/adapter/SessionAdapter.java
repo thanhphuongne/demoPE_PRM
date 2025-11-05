@@ -17,6 +17,7 @@ import com.thunderboarsolution.MVVMretrofiltrequest.viewmodel.HomeViewModel;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -30,7 +31,9 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionV
 
     private final Context context;
     private final List<HomeViewModel.SessionUI> items = new ArrayList<>();
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+    private final SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
+    private final SimpleDateFormat dayTimeFormat = new SimpleDateFormat("EEE, h:mm a", Locale.getDefault());
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, MMM d", Locale.getDefault());
 
     public SessionAdapter(@NonNull Context context) {
         this.context = context;
@@ -83,7 +86,34 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionV
     }
 
     private String formatDate(long epochMillis) {
+        Calendar now = Calendar.getInstance();
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis(epochMillis);
+
+        if (isSameDay(c, now)) {
+            return "Today, " + timeFormat.format(new Date(epochMillis));
+        }
+
+        Calendar yesterday = (Calendar) now.clone();
+        yesterday.add(Calendar.DAY_OF_YEAR, -1);
+        if (isSameDay(c, yesterday)) {
+            return "Yesterday";
+        }
+
+        // Same week: show day-of-week and time
+        if (now.get(Calendar.WEEK_OF_YEAR) == c.get(Calendar.WEEK_OF_YEAR)
+                && now.get(Calendar.YEAR) == c.get(Calendar.YEAR)) {
+            return dayTimeFormat.format(new Date(epochMillis));
+        }
+
+        // Fallback: date only
         return dateFormat.format(new Date(epochMillis));
+    }
+
+    private boolean isSameDay(Calendar a, Calendar b) {
+        return a.get(Calendar.ERA) == b.get(Calendar.ERA)
+                && a.get(Calendar.YEAR) == b.get(Calendar.YEAR)
+                && a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR);
     }
 
     static class SessionViewHolder extends RecyclerView.ViewHolder {

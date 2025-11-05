@@ -8,8 +8,8 @@
     android:layout_marginTop="8dp"
     android:layout_marginBottom="8dp"
     app:cardUseCompatPadding="true"
-    app:cardElevation="4dp"
-    app:cardCornerRadius="8dp">
+    app:cardElevation="1dp"
+    app:cardCornerRadius="12dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -18,10 +18,12 @@
 
         <ImageView
             android:id="@+id/ivIcon"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_icon_circle"
+            android:padding="8dp"
             android:contentDescription="@string/app_name"
-            android:scaleType="centerCrop"
+            android:scaleType="centerInside"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
@@ -35,24 +37,10 @@
             android:textSize="16sp"
             android:maxLines="1"
             android:ellipsize="end"
+            android:layout_marginStart="12dp"
             app:layout_constraintStart_toEndOf="@id/ivIcon"
             app:layout_constraintTop_toTopOf="@id/ivIcon"
-            app:layout_constraintEnd_toStartOf="@id/tvDuration"
-            android:layout_marginStart="12dp" />
-
-        <TextView
-            android:id="@+id/tvDate"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="2025-11-04"
-            android:textSize="12sp"
-            android:textColor="#7A7A7A"
-            android:maxLines="1"
-            android:ellipsize="end"
-            app:layout_constraintStart_toStartOf="@id/tvSubject"
-            app:layout_constraintTop_toBottomOf="@id/tvSubject"
-            app:layout_constraintEnd_toStartOf="@id/tvDuration"
-            android:layout_marginTop="4dp" />
+            app:layout_constraintEnd_toStartOf="@id/tvDuration" />
 
         <TextView
             android:id="@+id/tvDuration"
@@ -64,6 +52,20 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Today, 2:30 PM"
+            android:textSize="12sp"
+            android:textColor="#7A7A7A"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="@id/tvSubject"
+            app:layout_constraintTop_toBottomOf="@id/tvSubject"
+            app:layout_constraintEnd_toStartOf="@id/ratingFocus" />
+
         <RatingBar
             android:id="@+id/ratingFocus"
             style="?android:attr/ratingBarStyleSmall"
@@ -71,9 +73,13 @@
             android:layout_height="wrap_content"
             android:numStars="5"
             android:stepSize="1"
+            android:isIndicator="true"
             android:rating="3"
-            app:layout_constraintStart_toStartOf="@id/tvSubject"
-            app:layout_constraintTop_toBottomOf="@id/tvDate"
+            android:progressTint="#FFC107"
+            android:secondaryProgressTint="#FFE082"
+            android:backgroundTint="#DDDDDD"
+            app:layout_constraintTop_toBottomOf="@id/tvDuration"
+            app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="6dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -133,22 +133,35 @@ public class StudyRepository {
      * - mostStudiedSubjectId
      */
     public Summary computeWeeklySummary(@NonNull List<SessionEntity> sessions, long nowMillis) {
-        long sevenDaysAgo = nowMillis - 7L * 24L * 60L * 60L * 1000L;
+        // Compute "this week" as from the start of the current calendar week (00:00 first day of week) to now
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTimeInMillis(nowMillis);
+        long end = nowMillis;
+    
+        java.util.Calendar start = (java.util.Calendar) cal.clone();
+        start.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        start.set(java.util.Calendar.MINUTE, 0);
+        start.set(java.util.Calendar.SECOND, 0);
+        start.set(java.util.Calendar.MILLISECOND, 0);
+        start.set(java.util.Calendar.DAY_OF_WEEK, start.getFirstDayOfWeek());
+        long startOfWeek = start.getTimeInMillis();
+    
         int total = 0;
         int focusSum = 0;
         int focusCount = 0;
         Map<String, Integer> subjectMinutes = new HashMap<>();
-
+    
         for (SessionEntity s : sessions) {
             if (s == null) continue;
-            if (s.getDateEpochMillis() >= sevenDaysAgo && s.getDateEpochMillis() <= nowMillis) {
-                total += Math.max(0, s.getDurationMinutes());
+            long t = s.getDateEpochMillis();
+            if (t >= startOfWeek && t <= end) {
+                int dur = Math.max(0, s.getDurationMinutes());
+                total += dur;
                 focusSum += s.getFocusLevel();
                 focusCount += 1;
                 String k = s.getSubjectId();
                 int prev = subjectMinutes.containsKey(k) ? subjectMinutes.get(k) : 0;
-                int newVal = prev + Math.max(0, s.getDurationMinutes());
-                subjectMinutes.put(k, newVal);
+                subjectMinutes.put(k, prev + dur);
             }
         }
         String topSubjectId = null;
