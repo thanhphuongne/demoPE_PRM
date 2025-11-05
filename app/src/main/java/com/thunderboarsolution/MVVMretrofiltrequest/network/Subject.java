@@ -11,13 +11,14 @@ import com.google.gson.annotations.SerializedName;
  */
 public class Subject {
 
-    @SerializedName("id")
+    // Accept common alternates seen in mock API payloads
+    @SerializedName(value = "id", alternate = { "subject_id" })
     private String id;
 
-    @SerializedName("name")
+    @SerializedName(value = "name", alternate = { "subject_name", "subject", "title" })
     private String name;
 
-    @SerializedName("iconUrl")
+    @SerializedName(value = "iconUrl", alternate = { "icon", "image", "icon_url", "iconLink", "iconURI" })
     private String iconUrl;
 
     public Subject() {

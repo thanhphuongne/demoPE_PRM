@@ -13,6 +13,9 @@ android {
         versionCode 1
         versionName "1.0"
 
+        // Expose Gemini API key from gradle.properties as BuildConfig.GEMINI_API_KEY (do not hardcode in code)
+        buildConfigField "String", "GEMINI_API_KEY", "\"${GEMINI_API_KEY}\""
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -27,6 +30,11 @@ android {
         // Use Java 17 to match AGP 8.x requirements and remove deprecation warnings
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // Enable BuildConfig so BuildConfig.GEMINI_API_KEY is generated
+    buildFeatures {
+        buildConfig true
     }
 }
 
@@ -46,6 +54,10 @@ dependencies {
     implementation 'androidx.room:room-runtime:2.6.1'
     annotationProcessor 'androidx.room:room-compiler:2.6.1'
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+
+    // Chatbot: HTTP + JSON for Gemini calls
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+    implementation 'com.google.code.gson:gson:2.10.1'
 
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'

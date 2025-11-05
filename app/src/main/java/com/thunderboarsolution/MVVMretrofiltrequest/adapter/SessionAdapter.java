@@ -22,6 +22,22 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+// Fallback avatar rendering + Glide listener
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.Typeface;
+import android.graphics.Color;
+import android.util.TypedValue;
+import android.graphics.drawable.Drawable;
+import androidx.annotation.Nullable;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+
 /**
  * RecyclerView adapter for displaying study sessions with subject icon, name, date, duration, and focus stars.
  *
@@ -67,11 +83,25 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionV
         if (item.iconUrl != null && !item.iconUrl.trim().isEmpty()) {
             Glide.with(context)
                     .load(item.iconUrl)
-                    .placeholder(R.drawable.ic_launcher_foreground)
-                    .error(R.drawable.ic_launcher_foreground)
+                    .placeholder(R.drawable.ic_launcher_background)
+                    .error(R.drawable.ic_launcher_background)
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            // Fallback to generated letter avatar if remote icon fails
+                            holder.ivIcon.setImageBitmap(createLetterAvatar(item.subjectName != null ? item.subjectName : item.subjectId, dpToPx(40)));
+                            return true; // we handled setting the drawable
+                        }
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            return false;
+                        }
+                    })
                     .into(holder.ivIcon);
         } else {
-            holder.ivIcon.setImageResource(R.drawable.ic_launcher_foreground);
+            // No URL provided -> generate a letter avatar bubble (colored circle + initial)
+            holder.ivIcon.setImageBitmap(createLetterAvatar(item.subjectName != null ? item.subjectName : item.subjectId, dpToPx(40)));
         }
     }
 
@@ -109,13 +139,61 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionV
         // Fallback: date only
         return dateFormat.format(new Date(epochMillis));
     }
-
+ 
     private boolean isSameDay(Calendar a, Calendar b) {
         return a.get(Calendar.ERA) == b.get(Calendar.ERA)
                 && a.get(Calendar.YEAR) == b.get(Calendar.YEAR)
                 && a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR);
     }
-
+ 
+    // Helpers for fallback avatar
+    private int dpToPx(int dp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
+    }
+ 
+    private Bitmap createLetterAvatar(String name, int sizePx) {
+        String letter = "?" ;
+        if (name != null && !name.trim().isEmpty()) {
+            letter = name.trim().substring(0, 1).toUpperCase(Locale.getDefault());
+        }
+        Bitmap bmp = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bmp);
+ 
+        // Background colored circle
+        Paint bg = new Paint(Paint.ANTI_ALIAS_FLAG);
+        bg.setColor(pickColor(name));
+        float radius = sizePx / 2f;
+        canvas.drawCircle(radius, radius, radius, bg);
+ 
+        // White letter
+        Paint text = new Paint(Paint.ANTI_ALIAS_FLAG);
+        text.setColor(Color.WHITE);
+        text.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        text.setTextSize(sizePx * 0.5f);
+        Rect bounds = new Rect();
+        text.getTextBounds(letter, 0, 1, bounds);
+        float x = radius - bounds.width() / 2f - bounds.left;
+        float y = radius + bounds.height() / 2f - bounds.bottom;
+        canvas.drawText(letter, x, y, text);
+        return bmp;
+    }
+ 
+    private int pickColor(String key) {
+        int[] colors = new int[]{
+                0xFF90CAF9, // blue
+                0xFFA5D6A7, // green
+                0xFFFFF59D, // yellow
+                0xFFCE93D8, // purple
+                0xFFFFCC80, // orange
+                0xFFEF9A9A  // red
+        };
+        int idx = 0;
+        if (key != null) {
+            idx = Math.abs(key.toLowerCase(Locale.getDefault()).hashCode()) % colors.length;
+        }
+        return colors[idx];
+    }
+ 
     static class SessionViewHolder extends RecyclerView.ViewHolder {
         ImageView ivIcon;
         TextView tvSubject;

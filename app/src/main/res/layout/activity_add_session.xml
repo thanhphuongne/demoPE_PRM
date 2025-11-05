@@ -99,14 +99,20 @@
 
     <RatingBar
         android:id="@+id/rbFocus"
-        style="?android:attr/ratingBarStyleSmall"
+        style="?android:attr/ratingBarStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:numStars="5"
         android:stepSize="1"
+        android:isIndicator="false"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:rating="3"
+        android:progressTint="#FFC107"
+        android:secondaryProgressTint="#FFE082"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvFocusLabel"
+        app:layout_constraintTop_toBottomOf="@+id/tvFocusLabel"
         android:layout_marginTop="8dp" />
 
     <!-- Notes -->

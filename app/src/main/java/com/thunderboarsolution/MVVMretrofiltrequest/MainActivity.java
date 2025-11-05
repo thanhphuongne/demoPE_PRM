@@ -22,7 +22,9 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.utils.ColorTemplate;
+import android.graphics.Color;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.thunderboarsolution.MVVMretrofiltrequest.adapter.SessionAdapter;
 import com.thunderboarsolution.MVVMretrofiltrequest.network.Subject;
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
     // FAB
     private FloatingActionButton fabAddSession;
+    private FloatingActionButton fabChatbot;
 
     // ViewModel
     private HomeViewModel viewModel;
@@ -151,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
 
         rvSessions = findViewById(R.id.rvSessions);
         fabAddSession = findViewById(R.id.fabAddSession);
+        fabChatbot = findViewById(R.id.fabChatbot);
     }
 
     private void setupRecycler() {
@@ -182,12 +186,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupPieChart() {
-        pieChart.setUsePercentValues(true);
+        // We'll compute percent labels ourselves in ValueFormatter
+        pieChart.setUsePercentValues(false);
         pieChart.getDescription().setEnabled(false);
-        pieChart.setDrawEntryLabels(true);
+        // Labels will be drawn via value formatter; disable entry labels
+        pieChart.setDrawEntryLabels(false);
         pieChart.setHoleRadius(40f);
         pieChart.setTransparentCircleRadius(45f);
         pieChart.getLegend().setEnabled(true);
+        // No-data state to make it obvious when there are no sessions in last 7 days
+        pieChart.setNoDataText("No study time in the last 7 days");
+        pieChart.setNoDataTextColor(Color.GRAY);
     }
 
     private void setupListeners() {
@@ -230,6 +239,11 @@ public class MainActivity extends AppCompatActivity {
 
         fabAddSession.setOnClickListener(v -> {
             Intent i = new Intent(MainActivity.this, AddSessionActivity.class);
+            startActivity(i);
+        });
+
+        fabChatbot.setOnClickListener(v -> {
+            Intent i = new Intent(MainActivity.this, ChatbotActivity.class);
             startActivity(i);
         });
     }
@@ -343,6 +357,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (total == 0) {
             pieChart.clear();
+            pieChart.setNoDataText("No study time in the last 7 days");
             pieChart.invalidate();
             return;
         }
@@ -360,10 +375,18 @@ public class MainActivity extends AppCompatActivity {
         dataSet.setColors(ColorTemplate.MATERIAL_COLORS);
         dataSet.setSliceSpace(2f);
         dataSet.setValueTextSize(12f);
+        dataSet.setValueTextColor(Color.WHITE);
 
         PieData data = new PieData(dataSet);
-        data.setValueFormatter(new PercentFormatter(pieChart));
-        pieChart.setUsePercentValues(true);
+        final int totalMinutes = total;
+        data.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getPieLabel(float value, PieEntry entry) {
+                float percent = totalMinutes == 0 ? 0f : (value / totalMinutes * 100f);
+                return String.format(Locale.getDefault(), "%s %.0f%%", entry.getLabel(), percent);
+            }
+        });
+        pieChart.setUsePercentValues(false);
         pieChart.setData(data);
         pieChart.highlightValues(null);
         pieChart.invalidate();
